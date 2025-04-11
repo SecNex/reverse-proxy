@@ -5,8 +5,10 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/secnex/reverse-proxy/cert"
@@ -29,6 +31,16 @@ func NewReverseProxy(configCache *ConfigCache, certManager *cert.CertManager, ap
 
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host := r.Host
+	// Entferne IPv6-Zonen-ID falls vorhanden
+	if strings.Contains(host, "%") {
+		host = strings.Split(host, "%")[0]
+	}
+
+	// Validiere Host-Format
+	if !isValidHost(host) {
+		http.Error(w, "Ungültiger Host", http.StatusBadRequest)
+		return
+	}
 
 	if host == "localhost" || host == "127.0.0.1" {
 		http.ServeFile(w, r, "www/index.html")
@@ -97,8 +109,22 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(resp.StatusCode)
-
 	io.Copy(w, resp.Body)
+}
+
+func isValidHost(host string) bool {
+	// Prüfe auf gültige IPv6-Adresse
+	if strings.Contains(host, ":") {
+		ip := net.ParseIP(host)
+		return ip != nil
+	}
+
+	// Prüfe auf gültigen Hostnamen
+	if strings.Contains(host, ".") {
+		return true
+	}
+
+	return false
 }
 
 func (rp *ReverseProxy) Start(port int, useSSL bool, certFile, keyFile string) error {
