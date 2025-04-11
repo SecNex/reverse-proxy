@@ -5,16 +5,21 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type APIServer struct {
 	activeConfigs map[string]bool
 	mu            sync.RWMutex
+	rateLimiter   map[string]time.Time
+	rateLimit     time.Duration
 }
 
 func NewAPIServer() *APIServer {
 	return &APIServer{
 		activeConfigs: make(map[string]bool),
+		rateLimiter:   make(map[string]time.Time),
+		rateLimit:     time.Second * 1, // 1 Anfrage pro Sekunde
 	}
 }
 
@@ -25,8 +30,13 @@ func (s *APIServer) Start(port int) error {
 }
 
 func (s *APIServer) handleStatus(w http.ResponseWriter, r *http.Request) {
+	if !s.checkRateLimit(r) {
+		http.Error(w, "Zu viele Anfragen", http.StatusTooManyRequests)
+		return
+	}
+
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Methode nicht erlaubt", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -45,23 +55,47 @@ func (s *APIServer) handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	json.NewEncoder(w).Encode(response)
 }
 
 func (s *APIServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	if !s.checkRateLimit(r) {
+		http.Error(w, "Zu viele Anfragen", http.StatusTooManyRequests)
+		return
+	}
+
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Methode nicht erlaubt", http.StatusMethodNotAllowed)
 		return
 	}
 
 	response := struct {
 		Message string `json:"message"`
 	}{
-		Message: "Refresh triggered successfully",
+		Message: "Aktualisierung erfolgreich ausgelöst",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	json.NewEncoder(w).Encode(response)
+}
+
+func (s *APIServer) checkRateLimit(r *http.Request) bool {
+	ip := r.RemoteAddr
+	now := time.Now()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if lastRequest, exists := s.rateLimiter[ip]; exists {
+		if now.Sub(lastRequest) < s.rateLimit {
+			return false
+		}
+	}
+
+	s.rateLimiter[ip] = now
+	return true
 }
 
 func (s *APIServer) SetActiveConfig(site string, active bool) {
