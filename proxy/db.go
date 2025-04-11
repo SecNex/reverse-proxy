@@ -46,12 +46,10 @@ func NewDBManager() (*DBManager, error) {
 		dbsslmode = "disable"
 	}
 
-	log.Println("Connecting to database...")
+	log.Printf("Connecting to database %s:%s/%s...", host, port, dbname)
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, dbsslmode)
-
-	log.Printf("DSN: %s", dsn)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
