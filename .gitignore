@@ -1,2 +1,13 @@
 certs/*
 www/*
+build/*
+
+*.env
+*.log
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.exp
+*.def

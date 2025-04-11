@@ -28,16 +28,13 @@ func NewReverseProxy(configCache *ConfigCache, certManager *cert.CertManager, ap
 }
 
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Hole den Host aus dem Request
 	host := r.Host
 
-	// Wenn der Host localhost oder 127.0.0.1 ist, serviere die statische index.html
 	if host == "localhost" || host == "127.0.0.1" {
 		http.ServeFile(w, r, "www/index.html")
 		return
 	}
 
-	// Hole die Konfiguration für den Host
 	config, exists := rp.configCache.Get(host)
 	if !exists {
 		contentType := r.Header.Get("Content-Type")
@@ -50,7 +47,6 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prüfe, ob die Konfiguration aktiv ist
 	if !rp.apiServer.IsActiveConfig(host) {
 		contentType := r.Header.Get("Content-Type")
 		if contentType != "application/json" {
@@ -62,7 +58,6 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Erstelle einen neuen Request für den Ziel-Server
 	req, err := http.NewRequest(r.Method, config.Protocol+"://"+config.Host+":"+strconv.Itoa(config.Port)+r.URL.Path, r.Body)
 	if err != nil {
 		contentType := r.Header.Get("Content-Type")
@@ -75,14 +70,12 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Kopiere die Header vom Original-Request
 	for key, values := range r.Header {
 		for _, value := range values {
 			req.Header.Add(key, value)
 		}
 	}
 
-	// Führe den Request aus
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -97,17 +90,14 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// Kopiere die Header vom Response
 	for key, values := range resp.Header {
 		for _, value := range values {
 			w.Header().Add(key, value)
 		}
 	}
 
-	// Kopiere den Status Code
 	w.WriteHeader(resp.StatusCode)
 
-	// Kopiere den Body
 	io.Copy(w, resp.Body)
 }
 
@@ -118,13 +108,10 @@ func (rp *ReverseProxy) Start(port int, useSSL bool, certFile, keyFile string) e
 	}
 
 	if useSSL {
-		// Prüfe, ob die Zertifikatsdateien existieren und gültig sind
 		if cert, err := tls.LoadX509KeyPair(certFile, keyFile); err == nil {
-			// Prüfe die Gültigkeit des Zertifikats
 			if len(cert.Certificate) > 0 {
 				if x509Cert, err := x509.ParseCertificate(cert.Certificate[0]); err == nil {
 					if time.Now().Before(x509Cert.NotAfter) {
-						// Zertifikat ist gültig, verwende es
 						server.TLSConfig = &tls.Config{
 							Certificates: []tls.Certificate{cert},
 						}
@@ -134,7 +121,6 @@ func (rp *ReverseProxy) Start(port int, useSSL bool, certFile, keyFile string) e
 			}
 		}
 
-		// Zertifikat existiert nicht oder ist ungültig, generiere ein neues
 		var err error
 		certFile, keyFile, err = rp.certManager.GenerateSelfSignedCert("localhost")
 		if err != nil {

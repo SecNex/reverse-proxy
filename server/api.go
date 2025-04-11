@@ -33,13 +33,11 @@ func (s *APIServer) handleStatus(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	// Konvertiere die aktiven Konfigurationen in ein Array
 	activeSites := make([]string, 0, len(s.activeConfigs))
 	for site := range s.activeConfigs {
 		activeSites = append(activeSites, site)
 	}
 
-	// Erstelle die JSON-Antwort
 	response := struct {
 		ActiveSites []string `json:"active_sites"`
 	}{
@@ -56,9 +54,6 @@ func (s *APIServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hier würde normalerweise die Logik für die Aktualisierung stehen
-	// Für dieses Beispiel senden wir einfach eine Erfolgsmeldung zurück
-
 	response := struct {
 		Message string `json:"message"`
 	}{
@@ -69,14 +64,12 @@ func (s *APIServer) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// SetActiveConfig markiert eine Konfiguration als aktiv
 func (s *APIServer) SetActiveConfig(site string, active bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.activeConfigs[site] = active
 }
 
-// IsActiveConfig prüft, ob eine Konfiguration aktiv ist
 func (s *APIServer) IsActiveConfig(site string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

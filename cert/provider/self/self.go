@@ -33,14 +33,12 @@ func (p *SelfSignedProvider) GetCertificate(host string) (*tls.Certificate, erro
 	certFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.crt", host))
 	keyFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.key", host))
 
-	// Prüfe, ob die Zertifikate bereits existieren
 	if _, err := os.Stat(certFile); os.IsNotExist(err) {
 		if err := p.generateCertificate(host); err != nil {
 			return nil, err
 		}
 	}
 
-	// Lade das Zertifikat
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return nil, err
@@ -76,7 +74,7 @@ func (p *SelfSignedProvider) generateCertificate(host string) error {
 			Country:            []string{"DE"},
 		},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(time.Hour * 24 * 365), // 1 Jahr
+		NotAfter:  time.Now().Add(time.Hour * 24 * 365), // 1 year
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
@@ -97,7 +95,6 @@ func (p *SelfSignedProvider) generateCertificate(host string) error {
 	certFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.crt", host))
 	keyFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.key", host))
 
-	// Speichere das Zertifikat
 	certOut, err := os.Create(certFile)
 	if err != nil {
 		return err
@@ -105,7 +102,6 @@ func (p *SelfSignedProvider) generateCertificate(host string) error {
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: cert})
 	certOut.Close()
 
-	// Speichere den privaten Schlüssel
 	keyOut, err := os.Create(keyFile)
 	if err != nil {
 		return err

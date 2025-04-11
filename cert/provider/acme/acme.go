@@ -31,10 +31,8 @@ func NewProvider(certDir string) *ACMEProvider {
 }
 
 func (p *ACMEProvider) GetCertificate(host string) (*tls.Certificate, error) {
-	// Füge den Host zur Whitelist hinzu
 	p.manager.HostPolicy = autocert.HostWhitelist(host)
 
-	// Hole das Zertifikat vom ACME-Server
 	cert, err := p.manager.GetCertificate(&tls.ClientHelloInfo{
 		ServerName: host,
 	})
@@ -46,7 +44,6 @@ func (p *ACMEProvider) GetCertificate(host string) (*tls.Certificate, error) {
 }
 
 func (p *ACMEProvider) RenewCertificate(host string) error {
-	// ACME erneuert Zertifikate automatisch
 	return nil
 }
 

@@ -1,7 +1,10 @@
 package proxy
 
 import (
+	"log"
 	"sync"
+
+	"github.com/secnex/reverse-proxy/cert"
 )
 
 type ProxyConfig struct {
@@ -12,13 +15,17 @@ type ProxyConfig struct {
 }
 
 type ConfigCache struct {
-	configs map[string]ProxyConfig
-	mu      sync.RWMutex
+	configs     map[string]ProxyConfig
+	mu          sync.RWMutex
+	db          *DBManager
+	certManager *cert.CertManager
 }
 
-func NewConfigCache() *ConfigCache {
+func NewConfigCache(db *DBManager, certManager *cert.CertManager) *ConfigCache {
 	return &ConfigCache{
-		configs: make(map[string]ProxyConfig),
+		configs:     make(map[string]ProxyConfig),
+		db:          db,
+		certManager: certManager,
 	}
 }
 
@@ -30,6 +37,11 @@ func (cc *ConfigCache) Get(host string) (ProxyConfig, bool) {
 }
 
 func (cc *ConfigCache) Set(host string, config ProxyConfig) {
+	log.Println("Setting config for host:", host)
+
+	if config.SSL {
+		cc.certManager.GenerateSelfSignedCert(host)
+	}
 	cc.mu.Lock()
 	defer cc.mu.Unlock()
 	cc.configs[host] = config
@@ -44,7 +56,7 @@ func (cc *ConfigCache) Delete(host string) {
 func (cc *ConfigCache) GetAll() map[string]ProxyConfig {
 	cc.mu.RLock()
 	defer cc.mu.RUnlock()
-	// Erstelle eine Kopie der Konfigurationen
+
 	configs := make(map[string]ProxyConfig)
 	for host, config := range cc.configs {
 		configs[host] = config
@@ -56,4 +68,26 @@ func (cc *ConfigCache) Update(newConfigs map[string]ProxyConfig) {
 	cc.mu.Lock()
 	defer cc.mu.Unlock()
 	cc.configs = newConfigs
+}
+
+func (cc *ConfigCache) LoadFromDB() error {
+	websites, err := cc.db.GetAllWebsites()
+	if err != nil {
+		return err
+	}
+
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
+	cc.configs = make(map[string]ProxyConfig)
+	for _, website := range websites {
+		if website.Active {
+			cc.configs[website.Domain] = ProxyConfig{
+				Protocol: website.Protocol,
+				Host:     website.Host,
+				Port:     website.Port,
+				SSL:      website.SSL,
+			}
+		}
+	}
+	return nil
 }

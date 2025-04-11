@@ -22,7 +22,6 @@ func NewCertManager(certDir string) *CertManager {
 		providers: make(map[string]provider.CertificateProvider),
 	}
 
-	// Initialisiere die Provider
 	cm.providers["self"] = self.NewProvider(filepath.Join(certDir, "self"))
 	cm.providers["acme"] = acme.NewProvider(filepath.Join(certDir, "acme"))
 
@@ -57,7 +56,7 @@ func (cm *CertManager) ValidateCertificate(host string, providerType string) boo
 }
 
 func (cm *CertManager) GenerateSelfSignedCert(host string) (string, string, error) {
-	log.Println("Generating self-signed certificate for", host)
+	log.Printf("Generating self-signed certificate for %s...", host)
 	_, err := cm.GetCertificate(host, "self")
 	if err != nil {
 		return "", "", err
@@ -65,16 +64,16 @@ func (cm *CertManager) GenerateSelfSignedCert(host string) (string, string, erro
 
 	certFile := filepath.Join(cm.certDir, "self", fmt.Sprintf("%s.crt", host))
 	keyFile := filepath.Join(cm.certDir, "self", fmt.Sprintf("%s.key", host))
-	log.Println("Certificate generated for", host)
+	log.Printf("Certificate generated for %s!", host)
 	return certFile, keyFile, nil
 }
 
 func (cm *CertManager) LoadCert(certFile, keyFile string) (*tls.Certificate, error) {
-	log.Println("Loading certificate from", certFile, "and key from", keyFile)
+	log.Printf("Loading certificate from %s and key from %s...", certFile, keyFile)
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Certificate loaded successfully")
+	log.Printf("Certificate loaded successfully for %s!", certFile)
 	return &cert, nil
 }

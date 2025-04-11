@@ -19,6 +19,8 @@ type TemplateGenerator struct {
 }
 
 func NewTemplateGenerator(path string, title string, description string, version string, year string, author string, wwwPath string) *TemplateGenerator {
+	os.MkdirAll(wwwPath, 0755)
+
 	return &TemplateGenerator{
 		TemplatePath: path,
 		Title:        title,
@@ -55,7 +57,6 @@ func (t *TemplateGenerator) Generate() {
 			log.Fatalf("Error executing template: %v", err)
 		}
 
-		// Write the generated template to the WWWPath
 		outputFile := filepath.Join(t.WWWPath, filepath.Base(file))
 		log.Println("Writing template to WWWPath:", outputFile)
 		err = os.WriteFile(outputFile, output.Bytes(), 0644)
