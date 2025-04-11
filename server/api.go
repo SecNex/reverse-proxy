@@ -19,7 +19,7 @@ func NewAPIServer() *APIServer {
 	return &APIServer{
 		activeConfigs: make(map[string]bool),
 		rateLimiter:   make(map[string]time.Time),
-		rateLimit:     time.Second * 1, // 1 Anfrage pro Sekunde
+		rateLimit:     time.Second * 1,
 	}
 }
 

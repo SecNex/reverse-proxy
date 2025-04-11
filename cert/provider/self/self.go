@@ -29,7 +29,7 @@ func NewProvider(certDir string) *SelfSignedProvider {
 	}
 }
 
-func (p *SelfSignedProvider) GetCertificate(host string) (*tls.Certificate, error) {
+func (p *SelfSignedProvider) GetCertificate(host string, email string) (*tls.Certificate, error) {
 	certFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.crt", host))
 	keyFile := filepath.Join(p.CertDir, fmt.Sprintf("%s.key", host))
 
@@ -47,7 +47,7 @@ func (p *SelfSignedProvider) GetCertificate(host string) (*tls.Certificate, erro
 	return &cert, nil
 }
 
-func (p *SelfSignedProvider) RenewCertificate(host string) error {
+func (p *SelfSignedProvider) RenewCertificate(host string, email string) error {
 	return p.generateCertificate(host)
 }
 

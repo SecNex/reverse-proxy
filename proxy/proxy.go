@@ -31,12 +31,10 @@ func NewReverseProxy(configCache *ConfigCache, certManager *cert.CertManager, ap
 
 func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host := r.Host
-	// Entferne IPv6-Zonen-ID falls vorhanden
 	if strings.Contains(host, "%") {
 		host = strings.Split(host, "%")[0]
 	}
 
-	// Validiere Host-Format
 	if !isValidHost(host) {
 		http.Error(w, "Ungültiger Host", http.StatusBadRequest)
 		return
@@ -113,13 +111,11 @@ func (rp *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func isValidHost(host string) bool {
-	// Prüfe auf gültige IPv6-Adresse
 	if strings.Contains(host, ":") {
 		ip := net.ParseIP(host)
 		return ip != nil
 	}
 
-	// Prüfe auf gültigen Hostnamen
 	if strings.Contains(host, ".") {
 		return true
 	}
@@ -148,7 +144,7 @@ func (rp *ReverseProxy) Start(port int, useSSL bool, certFile, keyFile string) e
 		}
 
 		var err error
-		certFile, keyFile, err = rp.certManager.GenerateSelfSignedCert("localhost")
+		certFile, keyFile, err = rp.certManager.GenerateSelfSignedCert("localhost", "ssl@example.local")
 		if err != nil {
 			return fmt.Errorf("error generating self-signed certificate: %v", err)
 		}

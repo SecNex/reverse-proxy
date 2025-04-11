@@ -5,8 +5,8 @@ import (
 )
 
 type CertificateProvider interface {
-	GetCertificate(host string) (*tls.Certificate, error)
-	RenewCertificate(host string) error
+	GetCertificate(host string, email string) (*tls.Certificate, error)
+	RenewCertificate(host string, email string) error
 	ValidateCertificate(host string) bool
 }
 

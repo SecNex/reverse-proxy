@@ -28,22 +28,22 @@ func NewCertManager(certDir string) *CertManager {
 	return cm
 }
 
-func (cm *CertManager) GetCertificate(host string, providerType string) (*tls.Certificate, error) {
+func (cm *CertManager) GetCertificate(host string, providerType string, email string) (*tls.Certificate, error) {
 	provider, exists := cm.providers[providerType]
 	if !exists {
 		return nil, fmt.Errorf("provider %s not found", providerType)
 	}
 
-	return provider.GetCertificate(host)
+	return provider.GetCertificate(host, email)
 }
 
-func (cm *CertManager) RenewCertificate(host string, providerType string) error {
+func (cm *CertManager) RenewCertificate(host string, providerType string, email string) error {
 	provider, exists := cm.providers[providerType]
 	if !exists {
 		return fmt.Errorf("provider %s not found", providerType)
 	}
 
-	return provider.RenewCertificate(host)
+	return provider.RenewCertificate(host, email)
 }
 
 func (cm *CertManager) ValidateCertificate(host string, providerType string) bool {
@@ -55,9 +55,9 @@ func (cm *CertManager) ValidateCertificate(host string, providerType string) boo
 	return provider.ValidateCertificate(host)
 }
 
-func (cm *CertManager) GenerateSelfSignedCert(host string) (string, string, error) {
+func (cm *CertManager) GenerateSelfSignedCert(host string, email string) (string, string, error) {
 	log.Printf("Generating self-signed certificate for %s...", host)
-	_, err := cm.GetCertificate(host, "self")
+	_, err := cm.GetCertificate(host, "self", email)
 	if err != nil {
 		return "", "", err
 	}

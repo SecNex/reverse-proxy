@@ -12,6 +12,7 @@ type ProxyConfig struct {
 	Host     string
 	Port     int
 	SSL      bool
+	Email    string
 }
 
 type ConfigCache struct {
@@ -40,7 +41,7 @@ func (cc *ConfigCache) Set(host string, config ProxyConfig) {
 	log.Println("Setting config for host:", host)
 
 	if config.SSL {
-		cc.certManager.GenerateSelfSignedCert(host)
+		cc.certManager.GenerateSelfSignedCert(host, config.Email)
 	}
 	cc.mu.Lock()
 	defer cc.mu.Unlock()
@@ -86,6 +87,7 @@ func (cc *ConfigCache) LoadFromDB() error {
 				Host:     website.Host,
 				Port:     website.Port,
 				SSL:      website.SSL,
+				Email:    website.Email,
 			}
 		}
 	}

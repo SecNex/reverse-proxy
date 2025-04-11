@@ -30,8 +30,9 @@ func NewProvider(certDir string) *ACMEProvider {
 	}
 }
 
-func (p *ACMEProvider) GetCertificate(host string) (*tls.Certificate, error) {
+func (p *ACMEProvider) GetCertificate(host string, email string) (*tls.Certificate, error) {
 	p.manager.HostPolicy = autocert.HostWhitelist(host)
+	p.manager.Email = email
 
 	cert, err := p.manager.GetCertificate(&tls.ClientHelloInfo{
 		ServerName: host,
@@ -43,7 +44,8 @@ func (p *ACMEProvider) GetCertificate(host string) (*tls.Certificate, error) {
 	return cert, nil
 }
 
-func (p *ACMEProvider) RenewCertificate(host string) error {
+func (p *ACMEProvider) RenewCertificate(host string, email string) error {
+	p.manager.Email = email
 	return nil
 }
 

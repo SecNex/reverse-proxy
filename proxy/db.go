@@ -46,8 +46,31 @@ func NewDBManager() (*DBManager, error) {
 		dbsslmode = "disable"
 	}
 
-	log.Printf("Connecting to database %s:%s/%s...", host, port, dbname)
+	if os.Getenv("DB_RESET") == "true" {
+		log.Printf("Connecting to database %s:%s/postgres...", host, port)
+		postgresDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=%s",
+			host, port, user, password, dbsslmode)
 
+		postgresDB, err := gorm.Open(postgres.Open(postgresDSN), &gorm.Config{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to postgres database: %v", err)
+		}
+		log.Printf("Connected to database %s:%s/postgres.", host, port)
+
+		log.Printf("Dropping all connections to database %s...", dbname)
+		postgresDB.Exec("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '" + dbname + "';")
+		log.Printf("All connections to database %s dropped.", dbname)
+
+		log.Printf("Dropping database %s...", dbname)
+		postgresDB.Exec("DROP DATABASE IF EXISTS " + dbname + ";")
+		log.Printf("Database %s dropped.", dbname)
+
+		log.Printf("Creating database %s...", dbname)
+		postgresDB.Exec("CREATE DATABASE " + dbname + ";")
+		log.Printf("Database %s created.", dbname)
+	}
+
+	log.Printf("Connecting to database %s:%s/%s...", host, port, dbname)
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, dbsslmode)
 

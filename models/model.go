@@ -14,6 +14,7 @@ type Website struct {
 	Port     int    `gorm:"not null;default:80"`
 	SSL      bool   `gorm:"default:false"`
 	Active   bool   `gorm:"default:true"`
+	Email    string `gorm:"not null"`
 	LastSeen time.Time
 }
 
@@ -24,4 +25,5 @@ type WebsiteConfig struct {
 	Port     int
 	SSL      bool
 	Active   bool
+	Email    string
 }
