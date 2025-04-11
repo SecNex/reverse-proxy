@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		/>
+		<title>{{ .Title }}</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #f4f4f4;
+			}
+			header {
+				background: #333;
+				color: #fff;
+				padding: 1rem;
+				text-align: center;
+			}
+			.container {
+				width: 80%;
+				margin: 0 auto;
+				padding: 20px;
+			}
+			.content {
+				background: white;
+				padding: 25px;
+				margin: 30px 0;
+				border-radius: 10px;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			}
+			footer {
+				background: #333;
+				color: #fff;
+				padding: 1rem;
+				text-align: center;
+			}
+			footer .appversion {
+				font-size: 0.8rem;
+				font-weight: bold;
+				font-family: monospace;
+			}
+			footer .copyright {
+				font-size: 0.8rem;
+				font-family: monospace;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header>
+			<h1>{{ .Title }}</h1>
+		</header>
+		<div class="container">
+			<div class="content">
+				<h2>{{ .Title }}</h2>
+				<p>{{ .Description }}</p>
+
+				<div class="info">
+					<h3>Features:</h3>
+					<ul>
+						<li>HTTP and HTTPS support</li>
+						<li>In-Memory configuration cache</li>
+						<li>REST API for management</li>
+						<li>Self-Signed and ACME certificates</li>
+					</ul>
+				</div>
+
+				<p>
+					The reverse proxy forwards requests based on the host configuration to
+					the corresponding backend servers.
+				</p>
+			</div>
+			<div class="content">
+				<h2>API Documentation</h2>
+				<p>
+					The reverse proxy provides a REST API for managing the proxy
+					configuration.
+				</p>
+			</div>
+		</div>
+		<footer>
+			<div class="appversion">
+				<p>{{ .Version }}</p>
+			</div>
+			<div class="copyright">
+				<p>&copy; {{ .Year }} {{ .Author }}</p>
+			</div>
+		</footer>
+	</body>
+</html>
