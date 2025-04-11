@@ -6,8 +6,18 @@ COPY . .
 
 RUN go build -o main main.go
 
-FROM alpine:latest
+FROM golang:alpine as template
 
-COPY --from=builder /app/main /app/main
+WORKDIR /app
 
-CMD ["./main"]
+COPY . .
+
+CMD go run tools/generate.go
+
+FROM alpine:latest as runner
+
+COPY --from=builder /app/main /app/reverse-proxy
+COPY --from=template /app/template /app/template
+
+CMD ["./reverse-proxy"]
+
